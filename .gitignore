@@ -1,0 +1,12 @@
+dist/
+dist-newstyle/
+.cabal-sandbox/
+cabal.project.local
+.stack-work/
+*.hi
+*.o
+*.hie
+tags
+.ghci
+.HUSKY/
+.DS_Store

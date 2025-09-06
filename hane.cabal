@@ -1,0 +1,81 @@
+cabal-version:      3.0
+name:               hane
+version:            0.1.0.0
+synopsis:           Terminal-based Haskell/Markdown editor (MVP)
+description:        Hane is a fast TUI editor focused on Markdown and Haskell. This is the initial skeleton based on AGENT.md.
+category:           Editor
+build-type:         Simple
+author:             Your Name
+maintainer:         daydream_garden@yahoo.co.jp
+license:            BSD-3-Clause
+license-file:       LICENSE
+extra-source-files: README.md
+tested-with:        GHC == 9.6.5, GHC == 9.6.7
+homepage:           https://github.com/SilentMalachite/hane
+bug-reports:        https://github.com/SilentMalachite/hane/issues
+
+flag icu
+  description: Enable text-icu for grapheme boundaries
+  manual:      True
+  default:     True
+
+library
+  exposed-modules:
+      Editor.App
+      Editor.Buffer
+      Editor.Render
+      Editor.Markdown
+      Editor.Haskell
+      Editor.Config
+      Editor.Types
+      Editor.Keymap
+      Editor.File
+  hs-source-dirs:   src
+  default-language: Haskell2010
+  ghc-options:      -Wall -O2 -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base               >=4.17 && <5,
+      text               >=2.0 && <3,
+      bytestring         >=0.11 && <0.13,
+      brick              >=1.7 && <2,
+      vty                >=6 && <7,
+      mtl                >=2.2 && <3,
+      transformers       >=0.5 && <0.7,
+      cmark-gfm          >=0.2 && <0.3,
+      tagsoup            >=0.14 && <0.15,
+      ansi-terminal      >=0.11 && <1,
+      typed-process      >=0.2 && <0.3,
+      directory          >=1.3 && <1.4,
+      filepath           >=1.4 && <1.5,
+      unicode-transforms >=0.3 && <0.5,
+      
+  if flag(icu)
+    build-depends: text-icu >=0.8 && <1
+    cpp-options:   -DUSE_ICU
+
+executable hane
+  main-is:          Main.hs
+  hs-source-dirs:   app
+  default-language: Haskell2010
+  ghc-options:      -Wall -O2 -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base  >=4.17 && <5,
+      hane
+
+test-suite hane-tests
+  type:             exitcode-stdio-1.0
+  main-is:          Spec.hs
+  hs-source-dirs:   test
+  default-language: Haskell2010
+  ghc-options:      -Wall
+  build-depends:
+      base      >=4.17 && <5,
+      hane,
+      hspec     >=2.10 && <3,
+      text      >=2.0 && <3,
+      directory >=1.3 && <1.4,
+      filepath  >=1.4 && <1.5
+
+source-repository head
+  type: git
+  location: https://github.com/SilentMalachite/hane.git

@@ -1,0 +1,12 @@
+indentation: 2
+comma-style: leading
+record-brace-space: true
+newlines-between-decls: 1
+respectful: true
+fixities: []
+module-name-style: auto
+group-imports: true
+import-export-style: leading
+function-arrows: leading
+unicode: never
+

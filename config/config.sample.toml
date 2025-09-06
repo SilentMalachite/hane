@@ -1,0 +1,5 @@
+[editor]
+keymap = "vim"            # "vim" | "emacs"
+theme = "default"         # テーマ名（将来拡張）
+format_on_save = false     # 保存時の自動整形
+locale = "ja"              # ICU ロケール（例: "ja", "en_US"）。環境変数 HANE_LOCALE でも上書き可。

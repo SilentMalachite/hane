@@ -1,0 +1,5 @@
+packages: .
+
+-- Optional: enable tests by default
+-- tests: True
+
