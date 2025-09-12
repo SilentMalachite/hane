@@ -1,0 +1,94 @@
+name: Release Binaries
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Git tag to build and upload
+        type: string
+        required: true
+
+jobs:
+  build:
+    name: build-${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-13, macos-14, windows-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout tag
+        run: |
+          git fetch --tags --force
+          git checkout "${{ github.event.inputs.tag }}"
+
+      - name: Setup Haskell
+        uses: haskell/actions/setup@v2
+        with:
+          ghc-version: '9.6.7'
+          cabal-version: '3.12.1.0'
+
+      - name: Cabal cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ runner.os == 'Windows' && 'C:\\Users\\runneradmin\\AppData\\Roaming\\cabal' || '~/.cabal' }}
+            dist-newstyle
+          key: ${{ runner.os }}-cabal-${{ hashFiles('**/*.cabal') }}-${{ hashFiles('cabal.project*') }}
+
+      - name: Build (non-Windows)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          set -euxo pipefail
+          cabal update
+          # Disable ICU for portable builds
+          cabal install -f -icu exe:hane --installdir dist-bin --install-method=copy --overwrite-policy=always
+          bin=dist-bin/hane
+          chmod +x "$bin"
+          OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+          ARCH=$(uname -m)
+          case "$OS" in
+            darwin) OS=macos ;;
+            linux)  OS=linux ;;
+          esac
+          TARBALL="hane-${OS}-${ARCH}.tar.gz"
+          mkdir -p release
+          tar -C dist-bin -czf "release/${TARBALL}" hane
+          sha256sum "release/${TARBALL}" > "release/${TARBALL}.sha256"
+          echo "ASSET_PATH=release/${TARBALL}" >> $GITHUB_ENV
+          echo "CHECKSUM_PATH=release/${TARBALL}.sha256" >> $GITHUB_ENV
+
+      - name: Build (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          cabal update
+          cabal install -f -icu exe:hane --installdir dist-bin --install-method=copy --overwrite-policy=always
+          $bin = "dist-bin/hane.exe"
+          $os  = "windows"
+          $arch = "$env:PROCESSOR_ARCHITECTURE".ToLower()
+          if ($arch -eq 'amd64') { $arch = 'x86_64' }
+          New-Item -ItemType Directory -Force -Path release | Out-Null
+          $zip = "release/hane-$os-$arch.zip"
+          Compress-Archive -Path $bin -DestinationPath $zip -Force
+          # sha256
+          $hash = Get-FileHash -Algorithm SHA256 $zip | Select-Object -ExpandProperty Hash
+          $hashLine = "$hash  $(Split-Path -Leaf $zip)"
+          Set-Content -Path "$zip.sha256" -Value $hashLine
+          echo "ASSET_PATH=$zip" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "CHECKSUM_PATH=$zip.sha256" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Upload to GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${{ github.event.inputs.tag }}" "$ASSET_PATH" "$CHECKSUM_PATH" --clobber
+
