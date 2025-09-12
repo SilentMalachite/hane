@@ -1,11 +1,10 @@
-# Changelog
+# Hane v0.1.0.0 (2025-09-12)
 
-本プロジェクトは Keep a Changelog に準拠し、Semantic Versioning を採用します。
+## ハイライト
+- 初回公開（MVP）。Markdown/Haskell に特化した高速なTUIエディタ。
+- Vim/Emacs ライクなキーマップと設定ファイル対応、より親切なエラーメッセージ。
 
-## [Unreleased]
-（次リリースの項目をここに追記してください）
-
-## [0.1.0.0] - 2025-09-12
+## 変更点
 ### Added
 - 宣言的キーマップ（Vim Normal/Insert、Emacs C-x シーケンス）
 - 設定パーサの `[editor]`/snake_case 対応
@@ -21,3 +20,20 @@
 - `validateFilePath` が `/`・`.`・`..` を許容し得た問題を修正
 - `[editor]` テーブルの `format_on_save` が反映されないことがある問題を修正
 - FilePath の移植性向上（自前実装撤去）
+
+## 互換性/破壊的変更
+- 破壊的変更はありません。
+
+## 対応環境
+- GHC: 9.6.x（CI: 9.6.5 / 9.6.7）
+- OS: macOS / Linux（Windows は実験的）
+
+## インストール/実行
+```bash
+cabal build
+cabal run hane
+```
+
+## 比較リンク
+- 初回リリースのため比較リンクはありません。
+
