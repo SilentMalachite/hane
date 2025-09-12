@@ -18,7 +18,6 @@ module Editor.File
   ) where
 
 import Data.Text (Text)
-import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import System.Directory
   ( doesFileExist
@@ -34,7 +33,7 @@ import System.FilePath
   , takeDirectory
   )
 import Control.Exception (try, IOException)
-import Data.List (sort, filter)
+import Data.List (sort)
 
 -- | ファイル操作の種類
 data FileOperation = OpenFile | SaveFile | SaveAsFile
@@ -102,7 +101,7 @@ listDirectorySafe path = do
   if not exists
     then return $ Left $ DirectoryNotFound path
     else do
-      result <- try $ System.Directory.listDirectory path :: IO (Either IOException [FilePath])
+      result <- try $ listDirectory path :: IO (Either IOException [FilePath])
       case result of
         Left _ -> return $ Left $ DirectoryNotFound path
         Right files -> return $ Right $ sort files
@@ -125,10 +124,12 @@ isHaskellFile path =
 
 -- | ファイルパスの妥当性を検証
 validateFilePath :: FilePath -> Bool
-validateFilePath path = 
-  not (null path) && 
-  not (null $ takeFileName path) &&
-  (isAbsolute path || not (null $ normalise path))
+validateFilePath path =
+  let base = takeFileName path
+      invalidBase = null base || base == "." || base == ".." || base == "/"
+  in  not (null path)
+      && not invalidBase
+      && (isAbsolute path || not (null $ normalise path))
 
 -- | ファイルダイアログの初期状態を作成
 createFileDialog :: FileDialogMode -> FilePath -> IO (Either FileError FileDialogState)

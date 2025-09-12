@@ -37,6 +37,9 @@ jobs:
       - name: Lint
         run: hlint app src test
 
+      - name: Build library strict (-Wall -Werror, -f -icu)
+        run: cabal build lib:hane -f -icu -j --ghc-options "-Wall -Werror"
+
       - name: Build (-f -icu)
         run: cabal build -f -icu all -j
 

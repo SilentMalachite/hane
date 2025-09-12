@@ -3,6 +3,7 @@
 [![CI](https://github.com/SilentMalachite/hane/actions/workflows/ci.yml/badge.svg)](https://github.com/SilentMalachite/hane/actions/workflows/ci.yml)
 
 Hane は、Markdown と Haskell に最適化した端末ベースの軽量エディタです。日本語テキスト（全角・絵文字等）の表示幅やグラフェム単位の安全なカーソル移動を重視します。
+ライブラリは CI で常に `-Wall -Werror` による厳格ビルドを行い、警告の混入を防止します。
 
 ## クローン
 
@@ -28,6 +29,7 @@ cd hane
 - 日本語対応（グラフェム分割・全角幅計算）
   - ICU あり: `-f icu` で `text-icu` による正確なグラフェム境界
   - ICU なし: 合成文字/ZWJ/バリアントセレクタを考慮したフォールバック
+ - ファイル操作時のわかりやすいエラーメッセージ（権限・存在有無・不正パスなどを日本語で案内）
 
 ### ファイル操作
 - ファイル保存（`Ctrl+S`）
@@ -130,7 +132,9 @@ make lint     # コード品質チェック
 make ci       # CI向けビルドとテスト
 ```
 
-GitHub Actions は GHC 9.6.5 / 9.6.7 の行列でビルド/テストします。
+GitHub Actions は GHC 9.6.5 / 9.6.7 の行列でビルド/テストし、ライブラリは `-Wall -Werror` で厳格ビルドします。
+
+ローカルでは GHC 9.12 系でもビルド確認済みです（依存上限を緩和済み）。
 
 ## キーバインド
 

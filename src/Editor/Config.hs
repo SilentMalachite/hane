@@ -14,12 +14,11 @@ import Data.Text (Text)
 import Editor.Types (Keymap(..))
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
-import Data.Maybe (mapMaybe, fromMaybe)
+import Data.Maybe (fromMaybe)
 import System.Environment (lookupEnv)
 import System.Directory (doesFileExist, getHomeDirectory)
 import System.FilePath ((</>))
 import Control.Exception (try, IOException, Exception)
-import Data.Typeable (Typeable)
 
 data ConfigError = 
     ConfigFileNotFound FilePath
@@ -27,7 +26,7 @@ data ConfigError =
   | InvalidKeymapError Text
   | InvalidThemeError Text
   | InvalidLocaleError Text
-  deriving (Show, Eq, Typeable)
+  deriving (Show, Eq)
 
 instance Exception ConfigError
 
@@ -98,17 +97,6 @@ parseConfigText txt = do
       -- セクション状態を持ちながら k=v を収集
       kvs = collectKVs ls
 
-      -- 正規化: 大文字小文字/表記ゆれを吸収
-      normKey :: Text -> Text
-      normKey k = case T.toLower k of
-        "formatonsave"     -> "formatonsave"
-        "format_on_save"   -> "formatonsave"
-        "formatonsave"     -> "formatonsave"
-        "keymap"           -> "keymap"
-        "theme"            -> "theme"
-        "locale"           -> "locale"
-        _                   -> T.toLower k
-
       lookupKey :: Text -> Maybe Text
       lookupKey k = lookup (normKey k) kvs
 
@@ -147,12 +135,23 @@ parseConfigText txt = do
               case T.breakOn "=" l of
                 (k, v) | not (T.null v) ->
                   let key0 = normalizeKey k
-                      key = if inEditor then key0 else key0
+                      -- 収集段階でキーを正規化して保存する（format_on_save 等の表記ゆれ対応）
+                      key  = normKey key0
                       val = normalizeVal (T.drop 1 v)
                   in go inEditor ((key, val):acc) ls'
                 _ -> go inEditor acc ls'
 
     normalizeKey = T.toLower . T.strip
+
+    -- 正規化: 大文字小文字/表記ゆれを吸収
+    normKey :: Text -> Text
+    normKey k = case T.toLower k of
+      "format_on_save"   -> "formatonsave"
+      "formatonsave"     -> "formatonsave"
+      "keymap"           -> "keymap"
+      "theme"            -> "theme"
+      "locale"           -> "locale"
+      _                   -> T.toLower k
     normalizeVal = stripQuotes . T.strip
 
     stripQuotes s

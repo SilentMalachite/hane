@@ -25,7 +25,8 @@ spec = do
 
   describe "File operations" $ do
     it "can handle filename extraction" $ do
-      let fileName = "test.md"
+      let fileName :: String
+          fileName = "test.md"
       fileName `shouldBe` "test.md"
 
   describe "User interface messages" $ do

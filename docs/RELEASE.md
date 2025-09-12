@@ -3,6 +3,7 @@
 1. 変更を確認
    - `CHANGELOG.md` を更新
    - 動作確認: `make build && make test`
+   - 厳格ビルド: `cabal build lib:hane -f -icu --ghc-options "-Wall -Werror"`
 2. バージョン更新
    - `hane.cabal` の `version:` を更新（Semantic Versioning）
 3. タグ作成

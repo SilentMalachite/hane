@@ -3,7 +3,6 @@
 module Editor.ConfigSpec (spec) where
 
 import Test.Hspec
-import Data.Text (Text)
 import qualified Data.Text as T
 import Editor.Config (Config(..), ConfigError(..), defaultConfig, parseConfigText, validateConfig)
 import Editor.Types (Keymap(..))

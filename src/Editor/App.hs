@@ -4,7 +4,6 @@ module Editor.App (run) where
 
 import Brick
 import qualified Brick.Main as M (halt, defaultMain, neverShowCursor)
-import Control.Monad.State.Class (get, put, modify)
 import Control.Monad.IO.Class (liftIO)
 import Brick.Widgets.Border (border)
 import Brick.Widgets.Center (center)
@@ -16,7 +15,7 @@ import Editor.Markdown (renderMarkdownPlain)
 import Editor.Haskell (formatBuffer)
 import Editor.Render (displayWidth)
 import Editor.Buffer (graphemes, moveLeft, moveRight)
-import Editor.Types (icuEnabled)
+import Editor.Types (icuEnabled, Keymap(..))
 import Editor.Config (Config(..), defaultConfig, loadConfig)
 import Editor.File (FileDialogState(..), FileDialogMode(..), FileError(..), openFile, saveFile, createFileDialog, moveSelection, goUpDirectory, enterDirectory)
 import System.Directory (doesDirectoryExist)
@@ -93,10 +92,14 @@ drawFileDialog :: St -> FileDialogState -> Widget Name
 drawFileDialog _ dialog = center $ border $ padAll 1 $ vBox
   [ str $ "File Dialog - " ++ show (fdMode dialog)
   , padTop (Pad 1) $ str $ "Path: " ++ fdCurrentPath dialog
-  , padTop (Pad 1) $ border $ vBox $ map drawFileItem (zip [0..] (fdFiles dialog))
+  , padTop (Pad 1) $ border $ vBox $ map drawFileItem indexedFiles
   , padTop (Pad 1) $ str "↑↓: navigate | Enter: select | Esc: cancel | Backspace: up"
   ]
   where
+    indexedFiles :: [(Int, FilePath)]
+    indexedFiles = zip [0 :: Int ..] (fdFiles dialog)
+
+    drawFileItem :: (Int, FilePath) -> Widget Name
     drawFileItem (idx, file) = 
       let isSelected = idx == fdSelectedIndex dialog
           prefix = if isSelected then "> " else "  "
@@ -110,6 +113,9 @@ handleEvent ev@(VtyEvent _) = do
   case fileDialog s of
     Just dialog -> handleFileDialogEvent ev dialog
     Nothing -> handleMainEvent ev
+
+-- その他のイベントは無視
+handleEvent _ = pure ()
 
 -- メインUIのイベント処理
 handleMainEvent :: BrickEvent Name e -> EventM Name St ()
@@ -128,7 +134,7 @@ handleMainEvent (VtyEvent ev@(V.EvKey _ _)) = do
             HaskellMode  -> SaveAsHaskell
       dialogResult <- liftIO $ createFileDialog mode "."
       case dialogResult of
-        Left err -> modify $ \st -> st { message = T.pack $ formatErrorMessage $ "ファイルダイアログの初期化に失敗: " ++ show err }
+        Left err -> modify $ \st0 -> st0 { message = T.pack $ formatErrorMessage (prettyFileError "ファイルダイアログの初期化" err) }
         Right dialog -> modify $ \st -> st { fileDialog = Just dialog }
     Just ActOpen -> do
       let mode = case currentMode s of
@@ -136,7 +142,7 @@ handleMainEvent (VtyEvent ev@(V.EvKey _ _)) = do
             HaskellMode  -> OpenHaskell
       dialogResult <- liftIO $ createFileDialog mode "."
       case dialogResult of
-        Left err -> modify $ \st -> st { message = T.pack $ formatErrorMessage $ "ファイルダイアログの初期化に失敗: " ++ show err }
+        Left err -> modify $ \st0 -> st0 { message = T.pack $ formatErrorMessage (prettyFileError "ファイルダイアログの初期化" err) }
         Right dialog -> modify $ \st -> st { fileDialog = Just dialog }
     Just ActFormatHs -> do
       formatted <- liftIO (formatBuffer (hsBuffer s))
@@ -181,13 +187,14 @@ saveCurrentFile (Just path) content fileType = do
                   else return content
   result <- liftIO $ Editor.File.saveFile path finalContent
   case result of
-    Left (FileWriteError _ err) -> 
-      modify $ \st -> st { message = T.pack $ formatErrorMessage $ fileType ++ "ファイルの保存に失敗: " ++ err }
+    Left fe -> 
+      let ctx = fileType ++ "ファイルの保存"
+      in modify $ \st0 -> st0 { message = T.pack $ formatErrorMessage (prettyFileError ctx fe) }
     Right _ -> do
       let formatMsg = if cfgFormatOnSave (config st) && fileType == "Haskell"
                      then " (フォーマット済み)"
                      else ""
-      modify $ \st -> st { message = T.pack $ formatSuccessMessage $ fileType ++ "ファイルを保存しました: " ++ takeFileName path ++ formatMsg }
+      modify $ \st0 -> st0 { message = T.pack $ formatSuccessMessage $ fileType ++ "ファイルを保存しました: " ++ takeFileName path ++ formatMsg }
 
 -- テキスト編集ヘルパー関数
 getCurrentBuffer :: St -> (Text, Int)
@@ -266,6 +273,19 @@ formatSuccessMessage msg = "✅ " ++ msg
 formatInfoMessage :: String -> String
 formatInfoMessage msg = "ℹ️  " ++ msg
 
+-- FileError をユーザーフレンドリに整形
+prettyFileError :: String -> FileError -> String
+prettyFileError ctx fe = case fe of
+  FileNotFound p -> ctx ++ ": ファイルが見つかりません — " ++ short p
+  FileReadError p e -> ctx ++ ": 読み込みに失敗 — " ++ short p ++ reason e
+  FileWriteError p e -> ctx ++ ": 保存に失敗 — " ++ short p ++ reason e
+  DirectoryNotFound p -> ctx ++ ": ディレクトリが見つかりません — " ++ p
+  InvalidFilePath p -> ctx ++ ": ファイルパスが不正です — " ++ p ++ "（ファイル名を確認してください）"
+  PermissionDenied p -> ctx ++ ": 権限がありません — " ++ p ++ "（アクセス権を確認してください）"
+  where
+    short p = let b = takeFileName p in if null b then p else b
+    reason e = if null e then "" else "（詳細: " ++ e ++ ")"
+
 -- ファイルダイアログのイベント処理
 handleFileDialogEvent :: BrickEvent Name e -> FileDialogState -> EventM Name St ()
 handleFileDialogEvent (VtyEvent (V.EvKey V.KUp [])) dialog = 
@@ -291,10 +311,10 @@ handleFileDialogEvent (VtyEvent (V.EvKey V.KEnter [])) dialog = do
         else do
           result <- liftIO $ Editor.File.openFile fullPath
           case result of
-            Left (FileReadError _ err) -> 
-              modify $ \st -> st { 
+            Left fe -> 
+              modify $ \st0 -> st0 { 
                 fileDialog = Nothing
-              , message = T.pack $ "ファイルの読み込みに失敗: " ++ err 
+              , message = T.pack $ formatErrorMessage (prettyFileError "ファイルの読み込み" fe)
               }
             Right content -> do
               let (newBuffer, newPath) = case fdMode dialog of
@@ -318,13 +338,13 @@ handleFileDialogEvent (VtyEvent (V.EvKey V.KEnter [])) dialog = do
           let newPath = fdCurrentPath dialog ++ "/" ++ selectedFile
           saveResult <- liftIO $ Editor.File.saveFile newPath (mdBuffer currentSt)
           case saveResult of
-            Left (FileWriteError _ err) -> 
-              modify $ \st -> st { 
+            Left fe -> 
+              modify $ \st0 -> st0 { 
                 fileDialog = Nothing
-              , message = T.pack $ "ファイルの保存に失敗: " ++ err 
+              , message = T.pack $ formatErrorMessage (prettyFileError "Markdownファイルの保存" fe)
               }
             Right _ -> 
-              modify $ \st -> st { 
+              modify $ \st0 -> st0 { 
                 fileDialog = Nothing
               , message = T.pack $ "ファイルを保存しました: " ++ selectedFile
               , mdFilePath = Just newPath
@@ -334,13 +354,13 @@ handleFileDialogEvent (VtyEvent (V.EvKey V.KEnter [])) dialog = do
           let newPath = fdCurrentPath dialog ++ "/" ++ selectedFile
           saveResult <- liftIO $ Editor.File.saveFile newPath (hsBuffer currentSt)
           case saveResult of
-            Left (FileWriteError _ err) -> 
-              modify $ \st -> st { 
+            Left fe -> 
+              modify $ \st0 -> st0 { 
                 fileDialog = Nothing
-              , message = T.pack $ "ファイルの保存に失敗: " ++ err 
+              , message = T.pack $ formatErrorMessage (prettyFileError "Haskellファイルの保存" fe)
               }
             Right _ -> 
-              modify $ \st -> st { 
+              modify $ \st0 -> st0 { 
                 fileDialog = Nothing
               , message = T.pack $ "ファイルを保存しました: " ++ selectedFile
               , hsFilePath = Just newPath
@@ -353,7 +373,7 @@ handleFileDialogEvent (VtyEvent (V.EvKey V.KEsc [])) _ =
 handleFileDialogEvent (VtyEvent (V.EvKey V.KBS [])) dialog = do
   result <- liftIO $ goUpDirectory dialog
   case result of
-    Left err -> modify $ \st -> st { message = T.pack $ "ディレクトリ移動に失敗: " ++ show err }
+    Left err -> modify $ \st0 -> st0 { message = T.pack $ formatErrorMessage (prettyFileError "ディレクトリ移動" err) }
     Right newDialog -> modify $ \st -> st { fileDialog = Just newDialog }
 
 handleFileDialogEvent _ _ = pure ()

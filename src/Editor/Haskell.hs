@@ -12,7 +12,6 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import qualified Data.ByteString.Lazy as BL
 import           System.Directory (findExecutable)
-import           System.Exit (ExitCode(..))
 import           System.Process.Typed
 
 -- fourmolu / ormolu を優先順で実行
