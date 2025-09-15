@@ -1,0 +1,25 @@
+{
+  "description": "Template configuration for this project. See https://www.codebuff.com/config for all options.",
+  "startupProcesses": [
+    {
+      "name": "typecheck",
+      "command": "cabal build --enable-tests",
+      "enabled": false,
+      "stdoutFile": "logs/typecheck.log"
+    }
+  ],
+  "fileChangeHooks": [
+    {
+      "name": "format",
+      "command": "fourmolu -i",
+      "filePattern": "**/*.hs",
+      "enabled": false
+    },
+    {
+      "name": "typecheck",
+      "command": "cabal build --enable-tests",
+      "filePattern": "**/*.hs",
+      "enabled": true
+    }
+  ]
+}

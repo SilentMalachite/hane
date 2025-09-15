@@ -5,13 +5,16 @@
 - Cabal 3.10+
 
 ## よく使うコマンド
-```
-make setup
-make build
-make run
-make test
-make fmt fmt-check
-make lint
+```bash
+make setup      # 初期セットアップ
+make tools      # 開発ツールインストール
+make build      # ビルド
+make run        # 実行
+make test       # テスト
+make fmt        # コードフォーマット
+make fmt-check  # フォーマットチェック
+make lint       # リンター実行
+make ci         # CI チェック
 ```
 
 ## CI

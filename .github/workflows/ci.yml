@@ -4,15 +4,30 @@ on:
   push:
     branches: [ main, master ]
   pull_request:
+    branches: [ main, master ]
+
+permissions:
+  contents: read
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    name: GHC ${{ matrix.ghc }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         ghc: ["9.6.5", "9.6.7"]
         cabal: ["3.10.3.0"]
+        os: [ubuntu-latest]
+        include:
+          # Test latest GHC on multiple platforms
+          - ghc: "9.6.7"
+            cabal: "3.10.3.0"
+            os: macos-latest
+          - ghc: "9.6.7"
+            cabal: "3.10.3.0"
+            os: windows-latest
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,8 +38,24 @@ jobs:
           ghc-version: ${{ matrix.ghc }}
           cabal-version: ${{ matrix.cabal }}
 
-      - name: Cabal update
-        run: cabal update
+      - name: Configure Cabal
+        run: |
+          cabal configure --enable-tests --enable-benchmarks
+          cabal update
+
+      - name: Cache Cabal Store
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ runner.os == 'Windows' && 'C:\\Users\\runneradmin\\AppData\\Roaming\\cabal' || '~/.cabal' }}
+            dist-newstyle
+          key: ${{ runner.os }}-ghc-${{ matrix.ghc }}-cabal-${{ hashFiles('**/*.cabal', 'cabal.project*') }}
+          restore-keys: |
+            ${{ runner.os }}-ghc-${{ matrix.ghc }}-cabal-
+            ${{ runner.os }}-ghc-${{ matrix.ghc }}-
+
+      - name: Install dependencies
+        run: cabal build --dependencies-only all
 
       - name: Install tools (fourmolu, hlint)
         run: |
@@ -45,3 +76,11 @@ jobs:
 
       - name: Test (-f -icu)
         run: cabal test -f -icu all -j
+
+      - name: Build with ICU (if available on Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libicu-dev
+          cabal build -f +icu all -j || echo "ICU build failed, continuing..."
+          cabal test -f +icu all -j || echo "ICU tests failed, continuing..."

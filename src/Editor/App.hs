@@ -10,7 +10,7 @@ import Brick.Widgets.Center (center)
 import qualified Graphics.Vty as V
 import Data.Text (Text)
 import qualified Data.Text as T
-import System.FilePath (takeFileName)
+import System.FilePath (takeFileName, (</>))
 import Editor.Markdown (renderMarkdownPlain)
 import Editor.Haskell (formatBuffer)
 import Editor.Render (displayWidth)
@@ -300,7 +300,7 @@ handleFileDialogEvent (VtyEvent (V.EvKey V.KEnter [])) dialog = do
   if selectedIndex < length files
     then do
       let selectedFile = files !! selectedIndex
-          fullPath = fdCurrentPath dialog ++ "/" ++ selectedFile
+          fullPath = fdCurrentPath dialog </> selectedFile
       isDir <- liftIO $ doesDirectoryExist fullPath
       if isDir
         then do

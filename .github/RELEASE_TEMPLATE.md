@@ -35,10 +35,24 @@ sha256sum hane-<os>-<arch>.tar.gz
 - OS: macOS/Linux（Windows は実験的）
 
 ## インストール/実行
+
+### バイナリから（推奨）
+1. Assets からお使いのOSに対応するファイルをダウンロード
+2. 解凍して実行可能ファイルをPATHの通った場所に配置
+3. `hane` コマンドで起動
+
+### ソースから
 ```bash
-# ソースから
+# 基本インストール
+git clone https://github.com/SilentMalachite/hane.git
+cd hane
 cabal build
 cabal run hane
+
+# ICU サポート付き（オプション）
+# ICUライブラリが必要（README参照）
+cabal build -f +icu
+cabal run -f +icu hane
 ```
 
 ## 比較リンク

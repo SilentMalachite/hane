@@ -1,12 +1,18 @@
 name: Release Binaries
 
 on:
+  push:
+    tags:
+      - 'v*.*.*'
   workflow_dispatch:
     inputs:
       tag:
         description: Git tag to build and upload
         type: string
         required: true
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -26,7 +32,11 @@ jobs:
       - name: Checkout tag
         run: |
           git fetch --tags --force
-          git checkout "${{ github.event.inputs.tag }}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            git checkout "${{ github.event.inputs.tag }}"
+          else
+            git checkout "${{ github.ref }}"
+          fi
 
       - name: Setup Haskell
         uses: haskell/actions/setup@v2
@@ -90,5 +100,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload "${{ github.event.inputs.tag }}" "$ASSET_PATH" "$CHECKSUM_PATH" --clobber
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          gh release upload "$TAG" "$ASSET_PATH" "$CHECKSUM_PATH" --clobber
 

@@ -17,6 +17,11 @@ deps: ## Install dependencies
 	cabal update
 	cabal build --dependencies-only $(CABAL_BUILD_OPTS)
 
+tools: ## Install development tools
+	@echo "Installing development tools..."
+	cabal install fourmolu hlint
+	@echo "Tools installed. Make sure ~/.cabal/bin is in your PATH."
+
 setup: ## Initial project setup
 	@echo "Setting up project..."
 	cabal update
@@ -52,15 +57,30 @@ test-coverage: ## Run tests with coverage
 
 fmt: ## Format source code
 	@echo "Formatting source code..."
-	fourmolu -i app src test
+	@if command -v fourmolu >/dev/null 2>&1; then \
+		fourmolu -i app src test; \
+	else \
+		echo "Warning: fourmolu not found. Install with: cabal install fourmolu"; \
+		exit 1; \
+	fi
 
 fmt-check: ## Check formatting (CI)
 	@echo "Checking formatting..."
-	fourmolu -m check app src test
+	@if command -v fourmolu >/dev/null 2>&1; then \
+		fourmolu -m check app src test; \
+	else \
+		echo "Warning: fourmolu not found. Install with: cabal install fourmolu"; \
+		exit 1; \
+	fi
 
 lint: ## Run linter
 	@echo "Running linter..."
-	hlint app src test
+	@if command -v hlint >/dev/null 2>&1; then \
+		hlint app src test; \
+	else \
+		echo "Warning: hlint not found. Install with: cabal install hlint"; \
+		exit 1; \
+	fi
 
 lint-details: ## Run linter with detailed output
 	@echo "Running linter with detailed output..."

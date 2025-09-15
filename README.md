@@ -46,6 +46,17 @@ cd hane
 
 ## ビルド & 実行
 
+### 初回セットアップ
+
+```bash
+# 依存関係とビルド
+cabal update
+cabal build
+
+# 開発ツールのインストール（オプション）
+make tools
+```
+
 ### Cabal
 
 ```bash
@@ -62,7 +73,12 @@ make run      # 実行
 make test     # テスト実行
 ```
 
-### ICU の準備
+### ICU の準備（オプション）
+
+**注意**: ICU サポートは現在オプションです。デフォルトでは無効になっており、プロジェクトは ICU なしでビルドできます。
+
+より正確な日本語テキスト処理のために ICU を有効化したい場合：
+
 - macOS (Homebrew):
   - `brew install icu4c`
   - `export PKG_CONFIG_PATH="$(brew --prefix)/opt/icu4c/lib/pkgconfig:$PKG_CONFIG_PATH"`
@@ -71,7 +87,11 @@ make test     # テスト実行
 - Fedora/RHEL:
   - `sudo dnf install -y libicu-devel`
 
-`text-icu` は pkg-config 経由で ICU を検出します。見つからない場合は上記の `PKG_CONFIG_PATH` などを設定してください。
+その後、ICU 有効でビルド:
+```bash
+cabal build -f +icu
+cabal run -f +icu hane
+```
 
 ## ディレクトリ構成
 

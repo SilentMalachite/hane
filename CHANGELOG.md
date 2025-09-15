@@ -3,7 +3,21 @@
 本プロジェクトは Keep a Changelog に準拠し、Semantic Versioning を採用します。
 
 ## [Unreleased]
-（次リリースの項目をここに追記してください）
+### Fixed
+- ICU dependency build failures by changing default flag to False
+- File path concatenation bug using proper FilePath operations  
+- Invalid GHC options in library configuration
+- Missing development tools causing build failures
+
+### Added
+- Makefile guards for missing development tools with helpful error messages
+- `make tools` target for easy development tool installation
+- Better setup documentation in README
+- Improved CI workflow with caching and multi-platform testing
+
+### Changed
+- ICU support is now optional by default (can be enabled with -f +icu)
+- Enhanced error messages for tool installation
 
 ## [0.1.0.0] - 2025-09-12
 ### Added
