@@ -5,8 +5,9 @@
 ## [Unreleased]
 ### Fixed
 - ICU dependency build failures by changing default flag to False
-- File path concatenation bug using proper FilePath operations  
-- Invalid GHC options in library configuration
+- File path concatenation bug using proper FilePath operations
+- Invalid GHC options in cabal configuration (removed redundant -O flags)
+- Cabal package warnings (moved CHANGELOG.md to extra-doc-files)
 - Missing development tools causing build failures
 
 ### Added
@@ -14,10 +15,12 @@
 - `make tools` target for easy development tool installation
 - Better setup documentation in README
 - Improved CI workflow with caching and multi-platform testing
+- Cabal configuration improvements for Hackage compatibility
 
 ### Changed
 - ICU support is now optional by default (can be enabled with -f +icu)
 - Enhanced error messages for tool installation
+- Optimized GHC compilation flags for better compatibility
 
 ## [0.1.0.0] - 2025-09-12
 ### Added
