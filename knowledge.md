@@ -56,4 +56,8 @@ Hane is a terminal-based text editor optimized for Markdown and Haskell, with sp
 - Removed invalid GHC options from library configuration
 - Added Makefile guards for missing development tools
 - Improved setup documentation
+- **Fixed terminal compatibility issue**: Added TTY check and command-line argument handling to prevent crashes when running outside proper terminal environment
+- Added --help and --version command-line flags with proper usage information
+- **Fixed GitHub CI configuration**: Updated GHC versions, improved tool installation with proper PATH handling across platforms, made linting steps resilient with continue-on-error
+- Fixed Paths_hane module warnings by adding proper autogen-modules configuration
 - All tests now pass successfully
