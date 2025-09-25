@@ -13,7 +13,6 @@ import qualified Data.Text.Encoding as TE
 import qualified Data.ByteString.Lazy as BL
 import           System.Directory (findExecutable)
 import           System.Process.Typed
-import           System.Exit (ExitCode(..))
 
 -- fourmolu / ormolu を優先順で実行
 formatBuffer :: Text -> IO (Either Text Text)
