@@ -3,24 +3,44 @@
 本プロジェクトは Keep a Changelog に準拠し、Semantic Versioning を採用します。
 
 ## [Unreleased]
+
+## [0.1.1.0] - 2025-01-08
 ### Fixed
+- **Critical**: Save As path join bug using proper FilePath operations (</>) for cross-platform compatibility
 - ICU dependency build failures by changing default flag to False
-- File path concatenation bug using proper FilePath operations
-- Invalid GHC options in cabal configuration (removed redundant -O flags)
+- File path concatenation bugs throughout codebase
+- Invalid GHC options in cabal configuration
 - Cabal package warnings (moved CHANGELOG.md to extra-doc-files)
-- Missing development tools causing build failures
+- Formatter failure now notifies user instead of silently saving unformatted
+- Documentation errors: removed unimplemented undo/redo features from KEYMAPS.md
 
 ### Added
-- Makefile guards for missing development tools with helpful error messages
-- `make tools` target for easy development tool installation
-- Better setup documentation in README
-- Improved CI workflow with caching and multi-platform testing
-- Cabal configuration improvements for Hackage compatibility
+- **Refactored App.hs** into modular structure (437 → 497 lines across 5 modules):
+  * `Editor.App.Types`: Shared types (Name, AppMode, St)
+  * `Editor.App.UI`: UI rendering (115 lines)
+  * `Editor.App.State`: State management (90 lines)
+  * `Editor.App.Event`: Event handling (193 lines)
+  * `Editor.App`: Main entry point (68 lines)
+- `docs/KNOWN_ISSUES.md`: Comprehensive documentation of limitations
+- `docs/CI_IMPROVEMENTS.md`: CI configuration improvements
+- `REFACTOR_SUMMARY.md`: Detailed refactoring documentation
+- CI support for GHC 9.8.2 and 9.10.1
+- macOS ICU support in CI workflow
+- Improved error messages with emoji icons (⚠️ ✅ ℹ️)
 
 ### Changed
-- ICU support is now optional by default (can be enabled with -f +icu)
-- Enhanced error messages for tool installation
-- Optimized GHC compilation flags for better compatibility
+- CI now tests all GHC versions from `tested-with` field
+- CI builds with `-Wall -Werror` for all components (not just library)
+- Improved CI cache strategy (includes cabal version)
+- Better test output with `--test-show-details=streaming`
+- Enhanced configuration file documentation
+- Module organization following single responsibility principle
+
+### Improved
+- Code maintainability through modular architecture
+- Testing capabilities (modules can be tested independently)
+- Documentation accuracy (removed false claims)
+- Cross-platform compatibility (proper path handling)
 
 ## [0.1.0.0] - 2025-09-12
 ### Added

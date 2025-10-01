@@ -1,6 +1,6 @@
 cabal-version:      3.0
 name:               hane
-version:            0.1.0.0
+version:            0.1.1.0
 synopsis:           Terminal-based Haskell/Markdown editor (MVP)
 description:        Hane is a fast TUI editor focused on Markdown and Haskell. This is the initial skeleton based on AGENT.md.
 category:           Editor
