@@ -1,5 +1,31 @@
+# Hane エディタ設定ファイル
+# このファイルを ~/.config/hane/config.toml にコピーしてカスタマイズしてください
+
 [editor]
-keymap = "vim"            # "vim" | "emacs"
-theme = "default"         # テーマ名（将来拡張）
-format_on_save = false     # 保存時の自動整形
-locale = "ja"              # ICU ロケール（例: "ja", "en_US"）。環境変数 HANE_LOCALE でも上書き可。
+# 使用するキーマップ
+#   "vim"   - Vim風のキーバインド（Normal/Insertモード）
+#   "emacs" - Emacs風のキーバインド
+keymap = "vim"
+
+# エディタテーマ（将来の拡張用）
+#   "default" - デフォルトテーマ
+#   "dark"    - ダークテーマ（開発中）
+#   "light"   - ライトテーマ（開発中）
+theme = "default"
+
+# 保存時に自動でコード整形するかどうか
+#   true  - Haskellファイル保存時にfourmolu/ormoluで自動整形
+#   false - 手動整形のみ（F4キーまたはコマンド）
+format_on_save = false
+
+# 表示言語設定
+#   "auto"   - システムのロケールを自動検出
+#   "ja"     - 日本語表示
+#   "en_US"  - 英語表示
+#   その他   - 指定したロケール文字列（例: "ja_JP.UTF-8"）
+# 環境変数 HANE_LOCALE で上書きすることも可能
+locale = "ja"
+
+# キーバインドのカスタマイズ（将来の拡張用）
+[keymap]
+# 将来的にカスタムキーバインドを設定できるようにする拡張ポイント

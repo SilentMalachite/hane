@@ -1,23 +1,23 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE OverloadedStrings #-}
 
-module Editor.Buffer
-  ( Buffer
-  , empty
-  , fromText
-  , toText
-  , graphemes
-  , graphemesWithLocale
-  , moveLeft
-  , moveRight
-  , selectRange
-  ) where
+module Editor.Buffer (
+    Buffer,
+    empty,
+    fromText,
+    toText,
+    graphemes,
+    graphemesWithLocale,
+    moveLeft,
+    moveRight,
+    selectRange,
+) where
 
+import Data.Char (GeneralCategory (..), generalCategory)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
-import Data.Char (generalCategory, GeneralCategory(..))
 import qualified Data.Text.Normalize as N
 #ifdef USE_ICU
 import qualified Data.Text.ICU as ICU
@@ -28,15 +28,16 @@ import qualified Data.Text.ICU as ICU
 
 isCombining :: Char -> Bool
 isCombining c = case generalCategory c of
-  NonSpacingMark     -> True
-  SpacingCombiningMark -> True
-  EnclosingMark      -> True
-  _                  -> False
+    NonSpacingMark -> True
+    SpacingCombiningMark -> True
+    EnclosingMark -> True
+    _ -> False
 
 isVariationSelector :: Char -> Bool
 isVariationSelector c =
-  (c >= '\xFE00' && c <= '\xFE0F') ||  -- VS1..VS16
-  (c >= '\xE0100' && c <= '\xE01EF')   -- VS17..VS256 (plane 14)
+    (c >= '\xFE00' && c <= '\xFE0F')
+        || (c >= '\xE0100' && c <= '\xE01EF') -- VS1..VS16
+        -- VS17..VS256 (plane 14)
 
 isZWJ :: Char -> Bool
 isZWJ c = c == '\x200D'
@@ -88,8 +89,8 @@ consumeAfterBase b s =
 #endif
 
 -- NOTE: MVP として Text ベース。将来的に rope 実装に差し替え予定。
-newtype Buffer = Buffer { unBuffer :: Text }
-  deriving (Eq, Show)
+newtype Buffer = Buffer {unBuffer :: Text}
+    deriving (Eq, Show)
 
 empty :: Buffer
 empty = Buffer T.empty
@@ -103,17 +104,17 @@ toText = unBuffer
 -- | 左へ 1 グラフェム移動（範囲外は 0 にクランプ）
 moveLeft :: Int -> Text -> Int
 moveLeft i _t =
-  max 0 (min i (i - 1))
+    max 0 (min i (i - 1))
 
 -- | 右へ 1 グラフェム移動（範囲外は 末尾 にクランプ）
 moveRight :: Int -> Text -> Int
 moveRight i t =
-  max 0 (min (i + 1) (length (graphemes t)))
+    max 0 (min (i + 1) (length (graphemes t)))
 
 -- | グラフェム単位の選択テキストを取得
 selectRange :: Int -> Int -> Text -> Text
 selectRange a b t =
-  let gs = graphemes t
-      lo = max 0 (min a b)
-      hi = min (length gs) (max a b)
-  in T.concat (take (hi - lo) (drop lo gs))
+    let gs = graphemes t
+        lo = max 0 (min a b)
+        hi = min (length gs) (max a b)
+     in T.concat (take (hi - lo) (drop lo gs))

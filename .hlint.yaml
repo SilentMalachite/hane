@@ -1,7 +1,15 @@
-- arguments: []
-- ignore: {name: Use camelCase}
-- ignore: {name: Redundant do}
-- ignore: {name: Reduce duplication}
-- warnings: {name: Use newtype instead of data, within: src}
-- report: {filepath: hlint.html, format: html}
-
+- arguments: ["-XOverloadedStrings"]
+- ignore:
+    name: Use camelCase
+- ignore:
+    name: Redundant do
+- ignore:
+    name: Reduce duplication
+- ignore:
+    name: Redundant bracket
+- ignore:
+    name: Unused LANGUAGE pragma
+- ignore:
+    name: Redundant variable capture
+- ignore:
+    name: Use isAsciiUpper

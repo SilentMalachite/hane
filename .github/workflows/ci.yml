@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ghc: ["9.6.5", "9.6.7", "9.12.2"]
+        ghc: ["9.6.5", "9.6.7", "9.8.2", "9.10.1", "9.12.2"]
         cabal: ["3.12.1.0"]
         os: [ubuntu-latest]
         include:
@@ -47,11 +47,11 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            ${{ runner.os == 'Windows' && 'C:\\Users\\runneradmin\\AppData\\Roaming\\cabal' || '~/.cabal' }}
+            ${{ runner.os == 'Windows' && '~\\AppData\\Roaming\\cabal' || '~/.cabal' }}
             dist-newstyle
-          key: ${{ runner.os }}-ghc-${{ matrix.ghc }}-cabal-${{ hashFiles('**/*.cabal', 'cabal.project*') }}
+          key: ${{ runner.os }}-ghc-${{ matrix.ghc }}-cabal-${{ matrix.cabal }}-${{ hashFiles('**/*.cabal', 'cabal.project*') }}
           restore-keys: |
-            ${{ runner.os }}-ghc-${{ matrix.ghc }}-cabal-
+            ${{ runner.os }}-ghc-${{ matrix.ghc }}-cabal-${{ matrix.cabal }}-
             ${{ runner.os }}-ghc-${{ matrix.ghc }}-
 
       - name: Install dependencies
@@ -91,20 +91,31 @@ jobs:
         shell: bash
         continue-on-error: true
 
-      - name: Build library strict (-Wall -Werror, -f -icu)
-        run: cabal build lib:hane -f -icu -j --ghc-options="-Wall -Werror"
-
-      - name: Build (-f -icu)
-        run: cabal build -f -icu all -j
+      - name: Build with strict warnings (-Wall -Werror, -f -icu)
+        run: cabal build -f -icu all -j --ghc-options="-Wall -Werror"
 
       - name: Test (-f -icu)
-        run: cabal test -f -icu all -j
+        run: cabal test -f -icu all -j --test-show-details=streaming
 
-      - name: Build with ICU (if available on Linux)
+      - name: Install ICU (Linux)
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y libicu-dev
+
+      - name: Install ICU (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install icu4c
+          if [ -d "/opt/homebrew/opt/icu4c" ]; then
+            echo "PKG_CONFIG_PATH=/opt/homebrew/opt/icu4c/lib/pkgconfig" >> $GITHUB_ENV
+          else
+            echo "PKG_CONFIG_PATH=/usr/local/opt/icu4c/lib/pkgconfig" >> $GITHUB_ENV
+          fi
+
+      - name: Build with ICU
+        if: runner.os != 'Windows'
+        run: |
           cabal build -f +icu all -j || echo "ICU build failed, continuing..."
-          cabal test -f +icu all -j || echo "ICU tests failed, continuing..."
+          cabal test -f +icu all -j --test-show-details=streaming || echo "ICU tests failed, continuing..."
         continue-on-error: true

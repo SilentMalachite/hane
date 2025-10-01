@@ -1,10 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Editor.Render
-  ( renderLine
-  , displayWidth
-  , displayWidthG
-  ) where
+module Editor.Render (
+    renderLine,
+    displayWidth,
+    displayWidthG,
+) where
 
 import Data.Text (Text)
 import qualified Data.Text as T

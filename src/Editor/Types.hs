@@ -1,12 +1,12 @@
 {-# LANGUAGE CPP #-}
 
-module Editor.Types
-  ( Keymap(..)
-  , icuEnabled
-  ) where
+module Editor.Types (
+    Keymap (..),
+    icuEnabled,
+) where
 
 data Keymap = Vim | Emacs
-  deriving (Eq, Show, Read)
+    deriving (Eq, Show, Read)
 
 icuEnabled :: Bool
 #ifdef USE_ICU

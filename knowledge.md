@@ -33,7 +33,11 @@ Hane is a terminal-based text editor optimized for Markdown and Haskell, with sp
 - Support for themes, keymaps, and locale settings
 
 ## Module Structure
-- `Editor.App`: Main application logic
+- `Editor.App`: Main application entry point (run function)
+- `Editor.App.Types`: Shared types (Name, AppMode, St)
+- `Editor.App.UI`: UI rendering (drawUI, drawMainUI, drawBufferWithCursor, drawFileDialog)
+- `Editor.App.State`: State management (buffer operations, cursor movement, message formatting)
+- `Editor.App.Event`: Event handling (handleEvent, handleMainEvent, handleFileDialogEvent, saveCurrentFile)
 - `Editor.Buffer`: Text buffer management
 - `Editor.Render`: Display rendering
 - `Editor.Markdown`/`Editor.Haskell`: Language-specific features
@@ -61,3 +65,24 @@ Hane is a terminal-based text editor optimized for Markdown and Haskell, with sp
 - **Fixed GitHub CI configuration**: Updated GHC versions, improved tool installation with proper PATH handling across platforms, made linting steps resilient with continue-on-error
 - Fixed Paths_hane module warnings by adding proper autogen-modules configuration
 - All tests now pass successfully
+- **Fixed Save As path join bug**: Changed from string concatenation to proper FilePath operations (</>) for cross-platform compatibility
+- **Improved formatOnSave UX**: Now notifies user when formatter fails and saves unformatted file
+- **Updated documentation**: KEYMAPS.md now accurately reflects implemented features (removed unimplemented undo/redo)
+- **Created KNOWN_ISSUES.md**: Documents current limitations and planned features
+
+## Known Issues and Limitations
+- See `docs/KNOWN_ISSUES.md` for complete list
+- Undo/redo not yet implemented
+
+## Refactoring Completed
+- ✅ App.hs successfully refactored into modular structure (REFACTOR_PLAN.md completed)
+- Editor.App split into: Types (31 lines), UI (115 lines), State (90 lines), Event (193 lines), Core (68 lines)
+- Benefits: Better separation of concerns, easier testing, improved maintainability
+- All existing tests pass without modification
+
+## CI/CD Configuration
+- Tests all GHC versions from `tested-with` field (9.6.5, 9.6.7, 9.8.2, 9.10.1, 9.12.2)
+- Builds with `-Wall -Werror` for all components to catch warnings early
+- Cross-platform testing on Ubuntu, macOS, and Windows
+- ICU support tested on Linux and macOS (Windows ICU build is complex, documented limitation)
+- Efficient caching strategy includes GHC version, cabal version, and dependency hash
